@@ -6,88 +6,71 @@
   <style>
     body { font-family: Arial; padding: 20px; }
     input, button, select { margin: 5px; padding: 6px; }
-
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      margin-top: 15px;
-    }
-    th, td {
-      border: 1px solid #333;
-      padding: 8px;
-      text-align: left;
-    }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; }
     th { background: #eee; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
 
-<h2>🚴 Driver ShopeeFood Bandar Lampung</h2>
+<h2>Driver ShopeeFood Bandar Lampung</h2>
 
-<!-- ============ AUTH ============ -->
-<h3>Register</h3>
-<input id="r_nama" placeholder="Nama">
-<input id="r_email" placeholder="Email">
-<input id="r_nohp" placeholder="No HP">
-<input id="r_password" type="password" placeholder="Password">
-<button onclick="register()">Register</button>
+<!-- ================= AUTH ================= -->
+<div id="auth">
+  <h3>Register</h3>
+  <input id="r_nama" placeholder="Nama">
+  <input id="r_email" placeholder="Email">
+  <input id="r_nohp" placeholder="No HP">
+  <input id="r_password" type="password" placeholder="Password">
+  <button onclick="register()">Register</button>
 
-<h3>Login</h3>
-<input id="l_email" placeholder="Email">
-<input id="l_password" type="password" placeholder="Password">
-<button onclick="login()">Login</button>
+  <h3>Login</h3>
+  <input id="l_email" placeholder="Email">
+  <input id="l_password" type="password" placeholder="Password">
+  <button onclick="login()">Login</button>
+</div>
 
-<hr>
+<!-- ================= CRUD ================= -->
+<div id="crud" class="hidden">
 
-<!-- ============ CRUD FORM ============ -->
-<h3>Tambah / Update Driver</h3>
-<input type="hidden" id="id">
-<input id="nama" placeholder="Nama">
-<input id="email" placeholder="Email">
-<input id="no_hp" placeholder="No HP">
-<input id="alamat" placeholder="Alamat">
-<input id="kendaraan" placeholder="Kendaraan">
+  <button onclick="logout()">Logout</button>
 
-<select id="status">
-  <option value="aktif">Aktif</option>
-  <option value="nonaktif">Nonaktif</option>
-</select>
+  <h3>Tambah / Update Driver</h3>
+  <input type="hidden" id="id">
+  <input id="nama" placeholder="Nama">
+  <input id="email" placeholder="Email">
+  <input id="no_hp" placeholder="No HP">
+  <input id="alamat" placeholder="Alamat">
+  <input id="kendaraan" placeholder="Kendaraan">
+  <select id="status">
+    <option value="aktif">Aktif</option>
+    <option value="nonaktif">Nonaktif</option>
+  </select>
+  <button onclick="saveDriver()">Simpan</button>
 
-<button onclick="saveDriver()">Simpan</button>
-<button onclick="logout()">Logout</button>
-
-<!-- ============ TABLE ============ -->
-<h3>Data Driver</h3>
-<table>
-  <thead>
-    <tr>
-      <th>ID</th>
-      <th>Nama</th>
-      <th>Email</th>
-      <th>No HP</th>
-      <th>Alamat</th>
-      <th>Kendaraan</th>
-      <th>Status</th>
-      <th>Aksi</th>
-    </tr>
-  </thead>
-  <tbody id="drivers">
-    <tr>
-      <td colspan="8" style="text-align:center;">Loading...</td>
-    </tr>
-  </tbody>
-</table>
+  <h3>Data Driver</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th><th>Nama</th><th>Email</th><th>No HP</th>
+        <th>Alamat</th><th>Kendaraan</th><th>Status</th><th>Aksi</th>
+      </tr>
+    </thead>
+    <tbody id="drivers"></tbody>
+  </table>
+</div>
 
 <script>
-/* ============ CONFIG ============ */
-const AUTH_API   = "https://driver-auth.vercel.app";
-const DRIVER_API = "https://driver-service-kappa.vercel.app/drivers";
+// ===== GANTI SESUAI HOSTING =====
+const AUTH_API = "https://driver-auth.vercel.app";
+const DRIVER_API = "https://driver-service-kappa.vercel.app";
 
 let token = localStorage.getItem("token");
 
-/* ============ AUTH ============ */
+// ===== AUTH =====
 async function register() {
-  const res = await fetch(`${AUTH_API}/register`, {
+  await fetch(`${AUTH_API}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -97,8 +80,7 @@ async function register() {
       password: r_password.value
     })
   });
-
-  alert(res.ok ? "Register berhasil" : "Register gagal");
+  alert("Register berhasil");
 }
 
 async function login() {
@@ -116,24 +98,23 @@ async function login() {
 
   token = data.token;
   localStorage.setItem("token", token);
-  alert("Login berhasil");
+
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("crud").classList.remove("hidden");
+
+  loadDrivers();
 }
 
-/* ============ CRUD ============ */
+function logout() {
+  localStorage.removeItem("token");
+  location.reload();
+}
+
+// ===== CRUD =====
 async function loadDrivers() {
   const res = await fetch(DRIVER_API);
   const data = await res.json();
-
   drivers.innerHTML = "";
-
-  if (!data.length) {
-    drivers.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align:center;">Data kosong</td>
-      </tr>
-    `;
-    return;
-  }
 
   data.forEach(d => {
     drivers.innerHTML += `
@@ -155,8 +136,6 @@ async function loadDrivers() {
 }
 
 async function saveDriver() {
-  if (!token) return alert("Login dulu");
-
   const id = document.getElementById("id").value;
 
   const payload = {
@@ -173,10 +152,7 @@ async function saveDriver() {
 
   await fetch(url, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
 
@@ -196,22 +172,21 @@ function edit(d) {
 
 async function hapus(id) {
   if (!confirm("Hapus driver?")) return;
-
-  await fetch(`${DRIVER_API}/${id}`, {
-    method: "DELETE",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-
+  await fetch(`${DRIVER_API}/${id}`, { method: "DELETE" });
   loadDrivers();
 }
 
 function reset() {
-  id.value = "";
+  document.getElementById("id").value = "";
   document.querySelectorAll("input").forEach(i => i.value = "");
 }
 
-/* LOAD DATA SAAT PAGE BUKA */
-loadDrivers();
+// ===== AUTO LOGIN =====
+if (token) {
+  auth.classList.add("hidden");
+  crud.classList.remove("hidden");
+  loadDrivers();
+}
 </script>
 
 </body>
