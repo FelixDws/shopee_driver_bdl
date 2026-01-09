@@ -41,6 +41,7 @@
   <input id="nama" placeholder="Nama">
   <input id="email" placeholder="Email">
   <input id="no_hp" placeholder="No HP">
+  <input id="password" type="password" placeholder="Password Driver (wajib saat tambah)">
   <input id="alamat" placeholder="Alamat">
   <input id="kendaraan" placeholder="Kendaraan">
   <select id="status">
@@ -164,6 +165,16 @@ async function saveDriver() {
     status: status.value
   };
 
+  // 🔐 password WAJIB hanya saat CREATE
+  if (!id) {
+    payload.password = password.value;
+
+    if (!payload.password) {
+      alert("Password wajib diisi saat tambah driver");
+      return;
+    }
+  }
+
   const method = id ? "PUT" : "POST";
   const url = id ? `${DRIVER_API}/${id}` : DRIVER_API;
 
@@ -183,6 +194,7 @@ async function saveDriver() {
   loadDrivers();
 }
 
+
 function edit(d) {
   id.value = d.id;
   nama.value = d.nama;
@@ -191,7 +203,11 @@ function edit(d) {
   alamat.value = d.alamat || "";
   kendaraan.value = d.kendaraan || "";
   status.value = d.status;
+
+  password.value = "";
+  password.disabled = true;
 }
+
 
 async function hapus(id) {
   if (!confirm("Hapus driver?")) return;
@@ -213,6 +229,8 @@ function reset() {
   no_hp.value = "";
   alamat.value = "";
   kendaraan.value = "";
+  password.value = "";
+  password.disabled = false;
 }
 
 // ================= AUTO LOGIN =================
