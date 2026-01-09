@@ -112,9 +112,30 @@ function logout() {
 
 // ===== CRUD =====
 async function loadDrivers() {
-  const res = await fetch(DRIVER_API);
+  const res = await fetch(DRIVER_API, {
+    headers: token ? {
+      "Authorization": `Bearer ${token}`
+    } : {}
+  });
+
   const data = await res.json();
+  console.log(data);
+
   drivers.innerHTML = "";
+
+  if (!Array.isArray(data)) {
+    drivers.innerHTML = `
+      <tr><td colspan="8">Data tidak valid</td></tr>
+    `;
+    return;
+  }
+
+  if (data.length === 0) {
+    drivers.innerHTML = `
+      <tr><td colspan="8">Database kosong</td></tr>
+    `;
+    return;
+  }
 
   data.forEach(d => {
     drivers.innerHTML += `
@@ -126,14 +147,12 @@ async function loadDrivers() {
         <td>${d.alamat || ""}</td>
         <td>${d.kendaraan || ""}</td>
         <td>${d.status}</td>
-        <td>
-          <button onclick='edit(${JSON.stringify(d)})'>Edit</button>
-          <button onclick='hapus(${d.id})'>Hapus</button>
-        </td>
+        <td>-</td>
       </tr>
     `;
   });
 }
+
 
 async function saveDriver() {
   const id = document.getElementById("id").value;
