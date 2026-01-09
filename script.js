@@ -1,5 +1,5 @@
 // ================= CONFIG =================
-const AUTH_API = "https://driver-auth.up.railway.app";
+const AUTH_API = "https://driver-auth.vercel.app/";
 const DRIVER_API = "https://driver-service.up.railway.app/drivers";
 
 let token = localStorage.getItem("token");
