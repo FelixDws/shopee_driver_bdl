@@ -1,6 +1,6 @@
 // ================= CONFIG =================
 const AUTH_API = "https://driver-auth.vercel.app/";
-const DRIVER_API = "https://driver-service-kappa.vercel.app/";
+const DRIVER_API = "https://driver-service-kappa.vercel.app/drivers";
 
 let token = localStorage.getItem("token");
 
