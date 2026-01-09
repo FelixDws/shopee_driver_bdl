@@ -112,7 +112,17 @@ function logout() {
 
 // ===== CRUD =====
 async function loadDrivers() {
-  const res = await fetch(DRIVER_API);
+  const res = await fetch(DRIVER_API, {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+
+  if (!res.ok) {
+    alert("Gagal load data driver");
+    return;
+  }
+
   const data = await res.json();
   drivers.innerHTML = "";
 
@@ -134,6 +144,7 @@ async function loadDrivers() {
     `;
   });
 }
+
 
 async function saveDriver() {
   const id = document.getElementById("id").value;
