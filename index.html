@@ -2,7 +2,7 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
-  <title>Driver ShopeeFood Bandar Lampung</title>
+  <title>Driver ShopeeFood</title>
   <style>
     body { font-family: Arial; padding: 20px; }
     input, button, select { margin: 5px; padding: 6px; }
@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<h2>🚴 Driver ShopeeFood Bandar Lampung</h2>
+<h2>Driver ShopeeFood Bandar Lampung</h2>
 
 <!-- ================= AUTH ================= -->
 <div id="auth">
@@ -62,15 +62,15 @@
 </div>
 
 <script>
-/* ================= CONFIG ================= */
-const AUTH_API   = "https://driver-auth-production.up.railway.app";
-const DRIVER_API = "https://driver-service-production.up.railway.app";
+// ===== GANTI SESUAI HOSTING =====
+const AUTH_API = "https://driver-auth.vercel.app";
+const DRIVER_API = "https://driver-service-kappa.vercel.app";
 
 let token = localStorage.getItem("token");
 
-/* ================= AUTH ================= */
+// ===== AUTH =====
 async function register() {
-  const res = await fetch(`${AUTH_API}/register`, {
+  await fetch(`${AUTH_API}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -80,10 +80,7 @@ async function register() {
       password: r_password.value
     })
   });
-
-  const data = await res.json();
-  if (!res.ok) return alert(data.message || "Register gagal");
-  alert("Register berhasil, silakan login");
+  alert("Register berhasil");
 }
 
 async function login() {
@@ -97,13 +94,14 @@ async function login() {
   });
 
   const data = await res.json();
-  if (!res.ok) return alert(data.message || "Login gagal");
+  if (!data.token) return alert("Login gagal");
 
   token = data.token;
   localStorage.setItem("token", token);
 
-  auth.classList.add("hidden");
-  crud.classList.remove("hidden");
+  document.getElementById("auth").classList.add("hidden");
+  document.getElementById("crud").classList.remove("hidden");
+
   loadDrivers();
 }
 
@@ -112,14 +110,9 @@ function logout() {
   location.reload();
 }
 
-/* ================= CRUD ================= */
+// ===== CRUD =====
 async function loadDrivers() {
-  const res = await fetch(DRIVER_API, {
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-
-  if (!res.ok) return alert("Token invalid / expired");
-
+  const res = await fetch(DRIVER_API);
   const data = await res.json();
   drivers.innerHTML = "";
 
@@ -157,16 +150,11 @@ async function saveDriver() {
   const method = id ? "PUT" : "POST";
   const url = id ? `${DRIVER_API}/${id}` : DRIVER_API;
 
-  const res = await fetch(url, {
+  await fetch(url, {
     method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
-
-  if (!res.ok) return alert("Gagal simpan data");
 
   reset();
   loadDrivers();
@@ -184,21 +172,16 @@ function edit(d) {
 
 async function hapus(id) {
   if (!confirm("Hapus driver?")) return;
-
-  await fetch(`${DRIVER_API}/${id}`, {
-    method: "DELETE",
-    headers: { "Authorization": `Bearer ${token}` }
-  });
-
+  await fetch(`${DRIVER_API}/${id}`, { method: "DELETE" });
   loadDrivers();
 }
 
 function reset() {
-  id.value = "";
+  document.getElementById("id").value = "";
   document.querySelectorAll("input").forEach(i => i.value = "");
 }
 
-/* ================= AUTO LOGIN ================= */
+// ===== AUTO LOGIN =====
 if (token) {
   auth.classList.add("hidden");
   crud.classList.remove("hidden");
