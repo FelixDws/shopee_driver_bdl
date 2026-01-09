@@ -62,17 +62,15 @@
 </div>
 
 <script>
-console.log("SCRIPT JALAN");
-
-// ===== GANTI SESUAI HOSTING =====
-const AUTH_API = "https://driver-auth.vercel.app";
+// ================= CONFIG =================
+const AUTH_API   = "https://driver-auth.vercel.app";
 const DRIVER_API = "https://driver-service-kappa.vercel.app/drivers";
 
 let token = localStorage.getItem("token");
 
-// ===== AUTH =====
+// ================= AUTH =================
 async function register() {
-  await fetch(`${AUTH_API}/register`, {
+  const res = await fetch(`${AUTH_API}/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -82,7 +80,9 @@ async function register() {
       password: r_password.value
     })
   });
-  alert("Register berhasil");
+
+  const data = await res.json();
+  alert(data.message || "Register berhasil");
 }
 
 async function login() {
@@ -96,13 +96,16 @@ async function login() {
   });
 
   const data = await res.json();
-  if (!data.token) return alert("Login gagal");
+  if (!data.token) {
+    alert(data.message || "Login gagal");
+    return;
+  }
 
   token = data.token;
   localStorage.setItem("token", token);
 
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("crud").classList.remove("hidden");
+  auth.classList.add("hidden");
+  crud.classList.remove("hidden");
 
   loadDrivers();
 }
@@ -112,33 +115,28 @@ function logout() {
   location.reload();
 }
 
-// ===== CRUD =====
+// ================= CRUD =================
 async function loadDrivers() {
-  const res = await fetch(DRIVER_API);
+  const res = await fetch(DRIVER_API, {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+
   const data = await res.json();
-
-  console.log("RAW RESPONSE:", data);
-
-  // ⬇️ AMBIL ARRAY SEBENARNYA
-  const rows = data.drivers;
+  const rows = data.drivers || [];
 
   drivers.innerHTML = "";
 
-  if (!Array.isArray(rows) || rows.length === 0) {
-    drivers.innerHTML = `
-      <tr>
-        <td colspan="8" style="text-align:center;">
-          Data kosong
-        </td>
-      </tr>
-    `;
+  if (rows.length === 0) {
+    drivers.innerHTML = `<tr><td colspan="8">Data kosong</td></tr>`;
     return;
   }
 
-  rows.forEach((d, i) => {
+  rows.forEach(d => {
     drivers.innerHTML += `
       <tr>
-        <td>${d.id || d._id || i + 1}</td>
+        <td>${d.id}</td>
         <td>${d.nama}</td>
         <td>${d.email}</td>
         <td>${d.no_hp}</td>
@@ -147,14 +145,12 @@ async function loadDrivers() {
         <td>${d.status}</td>
         <td>
           <button onclick='edit(${JSON.stringify(d)})'>Edit</button>
-          <button onclick='hapus("${d.id || d._id}")'>Hapus</button>
+          <button onclick='hapus(${d.id})'>Hapus</button>
         </td>
       </tr>
     `;
   });
 }
-
-
 
 async function saveDriver() {
   const id = document.getElementById("id").value;
@@ -171,11 +167,17 @@ async function saveDriver() {
   const method = id ? "PUT" : "POST";
   const url = id ? `${DRIVER_API}/${id}` : DRIVER_API;
 
-  await fetch(url, {
+  const res = await fetch(url, {
     method,
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`
+    },
     body: JSON.stringify(payload)
   });
+
+  const data = await res.json();
+  alert(data.message || "Berhasil");
 
   reset();
   loadDrivers();
@@ -193,16 +195,27 @@ function edit(d) {
 
 async function hapus(id) {
   if (!confirm("Hapus driver?")) return;
-  await fetch(`${DRIVER_API}/${id}`, { method: "DELETE" });
+
+  await fetch(`${DRIVER_API}/${id}`, {
+    method: "DELETE",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+
   loadDrivers();
 }
 
 function reset() {
-  document.getElementById("id").value = "";
-  document.querySelectorAll("input").forEach(i => i.value = "");
+  id.value = "";
+  nama.value = "";
+  email.value = "";
+  no_hp.value = "";
+  alamat.value = "";
+  kendaraan.value = "";
 }
 
-// ===== AUTO LOGIN =====
+// ================= AUTO LOGIN =================
 if (token) {
   auth.classList.add("hidden");
   crud.classList.remove("hidden");
