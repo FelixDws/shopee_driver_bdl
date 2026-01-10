@@ -4,26 +4,137 @@
   <meta charset="UTF-8">
   <title>Driver ShopeeFood</title>
   <style>
-    body { font-family: Arial; padding: 20px; }
-    input, button, select { margin: 5px; padding: 6px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
-    th, td { border: 1px solid #ccc; padding: 8px; }
-    th { background: #eee; }
-    .hidden { display: none; }
+    /* ================= GLOBAL ================= */
+    body {
+      font-family: 'Arial', sans-serif;
+      background: #fff4eb;
+      margin: 0;
+      padding: 0;
+      color: #333;
+    }
+
+    a {
+      text-decoration: none;
+    }
+
+    h2, h3 {
+      margin: 0;
+    }
+
+    /* ================= HEADER ================= */
+    header {
+      background: #ff5722;
+      color: white;
+      padding: 20px 30px;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    header img {
+      height: 50px;
+    }
+
+    header h2 {
+      font-size: 1.8em;
+    }
+
+    /* ================= CARD ================= */
+    .card {
+      background: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px auto;
+      max-width: 900px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    /* ================= FORM ================= */
+    input, select, button {
+      margin: 8px 0;
+      padding: 10px;
+      font-size: 1em;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #ff5722;
+      box-shadow: 0 0 5px rgba(255,87,34,0.5);
+    }
+
+    button {
+      background: #ff5722;
+      color: white;
+      border: none;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #e64a19;
+    }
+
+    .logout-btn {
+      float: right;
+      background: #f44336;
+    }
+
+    .logout-btn:hover {
+      background: #d32f2f;
+    }
+
+    /* ================= TABLE ================= */
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      margin-top: 15px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background: #ffccbc;
+      color: #333;
+    }
+
+    tr:nth-child(even) {
+      background: #fff1e6;
+    }
+
+    tr:hover {
+      background: #ffe0cc;
+    }
+
+    .hidden {
+      display: none;
+    }
   </style>
 </head>
 <body>
 
-<h2>Driver ShopeeFood Bandar Lampung</h2>
+<!-- ================= HEADER ================= -->
+<header>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/0/0e/Shopee_logo.svg" alt="Shopee Logo">
+  <h2>Driver ShopeeFood Bandar Lampung</h2>
+</header>
 
 <!-- ================= AUTH ================= -->
-<div id="auth">
+<div id="auth" class="card">
   <h3>Register</h3>
   <input id="r_nama" placeholder="Nama">
   <input id="r_email" placeholder="Email">
   <input id="r_nohp" placeholder="No HP">
   <input id="r_password" type="password" placeholder="Password">
   <button onclick="register()">Register</button>
+
+  <hr>
 
   <h3>Login</h3>
   <input id="l_email" placeholder="Email">
@@ -32,9 +143,9 @@
 </div>
 
 <!-- ================= CRUD ================= -->
-<div id="crud" class="hidden">
+<div id="crud" class="hidden card">
 
-  <button onclick="logout()">Logout</button>
+  <button class="logout-btn" onclick="logout()">Logout</button>
 
   <h3>Tambah / Update Driver</h3>
   <input type="hidden" id="id">
@@ -63,182 +174,160 @@
 </div>
 
 <script>
-// ================= CONFIG =================
-const AUTH_API   = "https://driver-auth.vercel.app";
-const DRIVER_API = "https://driver-service-kappa.vercel.app/drivers";
+  // ================= SCRIPT SAMA PERSIS =================
+  const AUTH_API   = "https://driver-auth.vercel.app";
+  const DRIVER_API = "https://driver-service-kappa.vercel.app/drivers";
+  let token = localStorage.getItem("token");
 
-let token = localStorage.getItem("token");
+  async function register() {
+    const res = await fetch(`${AUTH_API}/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        nama: r_nama.value,
+        email: r_email.value,
+        no_hp: r_nohp.value,
+        password: r_password.value
+      })
+    });
 
-// ================= AUTH =================
-async function register() {
-  const res = await fetch(`${AUTH_API}/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      nama: r_nama.value,
-      email: r_email.value,
-      no_hp: r_nohp.value,
-      password: r_password.value
-    })
-  });
-
-  const data = await res.json();
-  alert(data.message || "Register berhasil");
-}
-
-async function login() {
-  const res = await fetch(`${AUTH_API}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      email: l_email.value,
-      password: l_password.value
-    })
-  });
-
-  const data = await res.json();
-  if (!data.token) {
-    alert(data.message || "Login gagal");
-    return;
+    const data = await res.json();
+    alert(data.message || "Register berhasil");
   }
 
-  token = data.token;
-  localStorage.setItem("token", token);
+  async function login() {
+    const res = await fetch(`${AUTH_API}/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email: l_email.value,
+        password: l_password.value
+      })
+    });
 
-  auth.classList.add("hidden");
-  crud.classList.remove("hidden");
-
-  loadDrivers();
-}
-
-function logout() {
-  localStorage.removeItem("token");
-  location.reload();
-}
-
-// ================= CRUD =================
-async function loadDrivers() {
-  const res = await fetch(DRIVER_API, {
-    headers: {
-      "Authorization": `Bearer ${token}`
-    }
-  });
-
-  const data = await res.json();
-  const rows = data.drivers || [];
-
-  drivers.innerHTML = "";
-
-  if (rows.length === 0) {
-    drivers.innerHTML = `<tr><td colspan="8">Data kosong</td></tr>`;
-    return;
-  }
-
-  rows.forEach(d => {
-    drivers.innerHTML += `
-      <tr>
-        <td>${d.id}</td>
-        <td>${d.nama}</td>
-        <td>${d.email}</td>
-        <td>${d.no_hp}</td>
-        <td>${d.alamat || ""}</td>
-        <td>${d.kendaraan || ""}</td>
-        <td>${d.status}</td>
-        <td>
-          <button onclick='edit(${JSON.stringify(d)})'>Edit</button>
-          <button onclick='hapus(${d.id})'>Hapus</button>
-        </td>
-      </tr>
-    `;
-  });
-}
-
-async function saveDriver() {
-  const id = document.getElementById("id").value;
-
-  const payload = {
-    nama: nama.value,
-    email: email.value,
-    no_hp: no_hp.value,
-    alamat: alamat.value,
-    kendaraan: kendaraan.value,
-    status: status.value
-  };
-
-  // 🔐 password WAJIB hanya saat CREATE
-  if (!id) {
-    payload.password = password.value;
-
-    if (!payload.password) {
-      alert("Password wajib diisi saat tambah driver");
+    const data = await res.json();
+    if (!data.token) {
+      alert(data.message || "Login gagal");
       return;
     }
+
+    token = data.token;
+    localStorage.setItem("token", token);
+
+    auth.classList.add("hidden");
+    crud.classList.remove("hidden");
+
+    loadDrivers();
   }
 
-  const method = id ? "PUT" : "POST";
-  const url = id ? `${DRIVER_API}/${id}` : DRIVER_API;
+  function logout() {
+    localStorage.removeItem("token");
+    location.reload();
+  }
 
-  const res = await fetch(url, {
-    method,
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
-    },
-    body: JSON.stringify(payload)
-  });
+  async function loadDrivers() {
+    const res = await fetch(DRIVER_API, {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
 
-  const data = await res.json();
-  alert(data.message || "Berhasil");
-
-  reset();
-  loadDrivers();
-}
-
-
-function edit(d) {
-  id.value = d.id;
-  nama.value = d.nama;
-  email.value = d.email;
-  no_hp.value = d.no_hp;
-  alamat.value = d.alamat || "";
-  kendaraan.value = d.kendaraan || "";
-  status.value = d.status;
-
-  password.value = "";
-  password.disabled = true;
-}
-
-
-async function hapus(id) {
-  if (!confirm("Hapus driver?")) return;
-
-  await fetch(`${DRIVER_API}/${id}`, {
-    method: "DELETE",
-    headers: {
-      "Authorization": `Bearer ${token}`
+    const data = await res.json();
+    const rows = data.drivers || [];
+    drivers.innerHTML = "";
+    if (rows.length === 0) {
+      drivers.innerHTML = `<tr><td colspan="8">Data kosong</td></tr>`;
+      return;
     }
-  });
+    rows.forEach(d => {
+      drivers.innerHTML += `
+        <tr>
+          <td>${d.id}</td>
+          <td>${d.nama}</td>
+          <td>${d.email}</td>
+          <td>${d.no_hp}</td>
+          <td>${d.alamat || ""}</td>
+          <td>${d.kendaraan || ""}</td>
+          <td>${d.status}</td>
+          <td>
+            <button onclick='edit(${JSON.stringify(d)})'>Edit</button>
+            <button onclick='hapus(${d.id})'>Hapus</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
 
-  loadDrivers();
-}
+  async function saveDriver() {
+    const id = document.getElementById("id").value;
+    const payload = {
+      nama: nama.value,
+      email: email.value,
+      no_hp: no_hp.value,
+      alamat: alamat.value,
+      kendaraan: kendaraan.value,
+      status: status.value
+    };
+    if (!id) {
+      payload.password = password.value;
+      if (!payload.password) {
+        alert("Password wajib diisi saat tambah driver");
+        return;
+      }
+    }
+    const method = id ? "PUT" : "POST";
+    const url = id ? `${DRIVER_API}/${id}` : DRIVER_API;
+    const res = await fetch(url, {
+      method,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    alert(data.message || "Berhasil");
+    reset();
+    loadDrivers();
+  }
 
-function reset() {
-  id.value = "";
-  nama.value = "";
-  email.value = "";
-  no_hp.value = "";
-  alamat.value = "";
-  kendaraan.value = "";
-  password.value = "";
-  password.disabled = false;
-}
+  function edit(d) {
+    id.value = d.id;
+    nama.value = d.nama;
+    email.value = d.email;
+    no_hp.value = d.no_hp;
+    alamat.value = d.alamat || "";
+    kendaraan.value = d.kendaraan || "";
+    status.value = d.status;
+    password.value = "";
+    password.disabled = true;
+  }
 
-// ================= AUTO LOGIN =================
-if (token) {
-  auth.classList.add("hidden");
-  crud.classList.remove("hidden");
-  loadDrivers();
-}
+  async function hapus(id) {
+    if (!confirm("Hapus driver?")) return;
+    await fetch(`${DRIVER_API}/${id}`, {
+      method: "DELETE",
+      headers: { "Authorization": `Bearer ${token}` }
+    });
+    loadDrivers();
+  }
+
+  function reset() {
+    id.value = "";
+    nama.value = "";
+    email.value = "";
+    no_hp.value = "";
+    alamat.value = "";
+    kendaraan.value = "";
+    password.value = "";
+    password.disabled = false;
+  }
+
+  if (token) {
+    auth.classList.add("hidden");
+    crud.classList.remove("hidden");
+    loadDrivers();
+  }
 </script>
 
 </body>
